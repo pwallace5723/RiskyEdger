@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EdgeFinder — Sports Odds Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ HEADER ═══════════════════════════════════ -->
+<header>
+  <div class="wrap">
+    <div class="hdr">
+      <a class="logo" href="#">
+        <div class="logo-hex">E</div>
+        <div class="logo-word">Edge<span>Finder</span></div>
+      </a>
+      <div class="hdr-sep"></div>
+      <div class="badge badge-green"><div class="dot"></div>Full Kelly</div>
+      <div class="badge badge-cyan"><div class="dot"></div>Live APIs</div>
+      <div class="hdr-spacer"></div>
+      <button class="btn btn-ghost btn-sm" onclick="loadSample()">Load Example</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear</button>
+      <button class="btn btn-gold btn-sm" onclick="showPremModal()">⭐ Go Premium</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-layout">
+
+    <!-- ═══════════════════════════════ LEFT COLUMN ═══════════════════════════════ -->
+    <div class="left-col">
+
+      <!-- 01: Event Setup -->
+      <div class="panel">
+        <div class="panel-hdr"><div class="panel-title">01 — <b>Event Setup</b></div></div>
+        <div class="panel-body">
+          <div class="field">
+            <label class="lbl">Event Name</label>
+            <input class="inp" id="evName" type="text" placeholder="e.g. 2025 Super Bowl Winner">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label class="lbl">Sport / Market</label>
+              <select class="inp" id="evSport">
+                <option>NFL</option><option>NBA</option><option>MLB</option>
+                <option>NHL</option><option>Golf</option><option>UFC/MMA</option>
+                <option>Soccer</option><option>Politics</option><option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="lbl">Date</label>
+              <input class="inp" id="evDate" type="date">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 02: Live Odds APIs -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-title">02 — <b>Live Odds APIs</b></div>
+          <div class="fetch-status" id="fetchStatus"></div>
+        </div>
+        <div class="panel-body">
+
+          <!-- Polymarket -->
+          <div class="api-row">
+            <div class="api-logo">🔮</div>
+            <div class="api-name">Polymarket</div>
+            <div class="api-status api-off" id="polyStatus">Disconnected</div>
+          </div>
+          <div class="api-inp-row">
+            <input class="inp" id="polyKey" type="password" placeholder="API key (optional for public markets)">
+            <button class="btn btn-ghost btn-sm" onclick="connectPoly()">Save Key</button>
+          </div>
+          <div class="field">
+            <label class="lbl">Market Slug / ID</label>
+            <div style="display:flex;gap:6px;">
+              <input class="inp mono-inp" id="polySlug" placeholder="e.g. super-bowl-lix-winner">
+              <button class="btn btn-primary btn-sm" onclick="fetchPoly()">Fetch</button>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Kalshi -->
+          <div class="api-row">
+            <div class="api-logo">📈</div>
+            <div class="api-name">Kalshi</div>
+            <div class="api-status api-off" id="kalshiStatus">Disconnected</div>
+          </div>
+          <div class="api-inp-row">
+            <input class="inp" id="kalshiKey" type="password" placeholder="Kalshi API key (kal_...)">
+            <button class="btn btn-ghost btn-sm" onclick="connectKalshi()">Save Key</button>
+          </div>
+          <div class="field" style="margin-bottom:10px;">
+            <label class="lbl">Series Ticker</label>
+            <div style="display:flex;gap:6px;">
+              <input class="inp mono-inp" id="kalshiTicker" placeholder="e.g. NFLSB-25">
+              <button class="btn btn-primary btn-sm" onclick="fetchKalshi()">Fetch</button>
+            </div>
+          </div>
+
+          <div class="api-note">
+            ℹ Public markets on Polymarket &amp; Kalshi don't need API keys. Keys are only needed for private/restricted markets. Fetched odds auto-fill the <span class="green-txt">Poly</span> &amp; <span class="cyan-txt">Kal</span> columns below (shown in teal).
+          </div>
+        </div>
+      </div>
+
+      <!-- 03: Candidates & Odds -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-title">03 — <b>Candidates & Odds</b></div>
+          <span class="hint-txt">American format (+150, -110)</span>
+        </div>
+        <div class="panel-body">
+          <div class="plat-grid plat-header-row">
+            <div class="plat-name" style="text-align:left;padding-left:2px;">Candidate</div>
+            <div class="plat-name">DK</div>
+            <div class="plat-name">FD</div>
+            <div class="plat-name">MGM</div>
+            <div class="plat-name">Caes</div>
+            <div class="plat-name green-txt">Poly</div>
+            <div class="plat-name cyan-txt">Kal</div>
+          </div>
+          <div class="cand-list" id="candList"></div>
+          <button class="add-cand" onclick="addCandidate()" style="margin-top:8px;">
+            <span style="font-size:16px;">+</span> Add Candidate
+          </button>
+        </div>
+      </div>
+
+      <!-- 04: Bankroll & Settings -->
+      <div class="panel">
+        <div class="panel-hdr"><div class="panel-title">04 — <b>Bankroll & Settings</b></div></div>
+        <div class="panel-body">
+          <div class="field">
+            <label class="lbl">Total Bankroll</label>
+            <div class="bankroll-wrap">
+              <div class="bankroll-prefix">$</div>
+              <input type="number" id="bankroll" value="1000" min="1">
+            </div>
+          </div>
+          <div class="field">
+            <label class="lbl">Win Probability Source</label>
+            <select class="inp" id="probMode">
+              <option value="best">Best odds (most optimistic)</option>
+              <option value="consensus">Consensus — average all books</option>
+              <option value="sharp">Sharp — DK + FD average only</option>
+            </select>
+          </div>
+          <button class="calc-btn" onclick="calculate()">⚡ Calculate Full Kelly Bets</button>
+        </div>
+      </div>
+
+    </div><!-- end left -->
+
+    <!-- ═══════════════════════════════ RIGHT COLUMN ═══════════════════════════════ -->
+    <div class="right-col">
+
+      <!-- Saved Setups -->
+      <div class="panel">
+        <div class="panel-hdr">
+          <div class="panel-title">📁 <b>Saved Setups</b></div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="slotInfo" class="hint-txt"></span>
+            <button class="btn btn-ghost btn-sm" onclick="saveCurrentBet()">💾 Save Current</button>
+          </div>
+        </div>
+        <div id="savesList"></div>
+        <div class="premium-gate" id="premGate" style="display:none;">
+          <div class="gate-icon">🔒</div>
+          <div>
+            <div class="gate-ttl">Unlock Unlimited Saves</div>
+            <div class="gate-sub">Free plan: 2 setups. Premium: unlimited + CSV export + auto-refresh.</div>
+          </div>
+          <button class="btn btn-gold btn-sm" style="flex-shrink:0;" onclick="showPremModal()">Upgrade →</button>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyPanel" class="panel">
+        <div class="empty-state">
+          <div class="empty-ico">📊</div>
+          <div class="empty-ttl">Ready to Calculate</div>
+          <div class="empty-sub">Enter candidates + odds, then hit<br>⚡ Calculate Full Kelly Bets</div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="resultsWrap" style="display:none;flex-direction:column;gap:14px;">
+
+        <div class="stats-row" id="statsRow"></div>
+
+        <div class="arb-banner" id="arbBanner">
+          ⚡ <strong>Arbitrage Detected</strong> — Combined implied probability is below 100%. Guaranteed profit may be possible by covering all outcomes.
+        </div>
+
+        <div class="panel">
+          <div class="panel-hdr">
+            <div class="panel-title">Full Kelly <b>Recommendations</b></div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="hint-txt" id="resultsMeta"></span>
+              <button class="btn btn-ghost btn-xs" onclick="exportCSV()">⬇ CSV</button>
+            </div>
+          </div>
+          <div class="tbl-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Candidate</th>
+                  <th class="c">DK</th><th class="c">FD</th><th class="c">BetMGM</th>
+                  <th class="c">Caesars</th><th class="c">Polymarket</th><th class="c">Kalshi</th>
+                  <th class="r">Best Odds</th><th class="r">Book</th>
+                  <th class="r">Win Prob</th><th class="r">Kelly %</th>
+                  <th class="r">Bet $</th><th class="r">Profit If Win</th>
+                  <th class="c">Signal</th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody"></tbody>
+            </table>
+          </div>
+          <div class="tbl-footer">
+            <span class="hint-txt">KEY:</span>
+            <span class="chip best" style="font-size:9px;">Cyan = best odds</span>
+            <span class="chip auto" style="font-size:9px;">Teal = API auto-filled</span>
+            <span class="chip na"   style="font-size:9px;">— = no line</span>
+          </div>
+        </div>
+
+        <div class="summary-grid" id="summaryGrid"></div>
+
+      </div><!-- end resultsWrap -->
+
+    </div><!-- end right -->
+
+  </div><!-- end page-layout -->
+</div><!-- end wrap -->
+
+
+<!-- ═══════════════════════════════════ MODALS ═══════════════════════════════════ -->
+
+<!-- Save Modal -->
+<div class="modal-bg" id="saveModal">
+  <div class="modal">
+    <div class="modal-ttl">💾 Save Setup</div>
+    <div class="modal-sub">Give this configuration a name to reload it later.</div>
+    <div class="field">
+      <label class="lbl">Setup Name</label>
+      <input class="inp" id="saveName" type="text" placeholder="e.g. Super Bowl 2025">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSaveModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Load Confirm Modal -->
+<div class="modal-bg" id="loadModal">
+  <div class="modal">
+    <div class="modal-ttl" id="loadTitle">Load Setup?</div>
+    <div class="modal-sub">This will replace your current unsaved work.</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeLoadModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmLoad()">Load</button>
+    </div>
+  </div>
+</div>
+
+<!-- Premium Modal -->
+<div class="modal-bg" id="premModal">
+  <div class="modal">
+    <div class="prem-hdr">
+      <div class="prem-ico">⭐</div>
+      <div class="prem-ttl">EdgeFinder Premium</div>
+      <div class="prem-sub2">Unlock everything. Bet smarter, save more.</div>
+    </div>
+    <div class="prem-feats">
+      <div class="prem-feat"><span class="prem-feat-ic">💾</span><span><strong>Unlimited saved setups</strong> — free plan is capped at 2</span></div>
+      <div class="prem-feat"><span class="prem-feat-ic">⬇</span><span><strong>CSV export</strong> of full recommendations table</span></div>
+      <div class="prem-feat"><span class="prem-feat-ic">🔄</span><span><strong>Auto-refresh</strong> Polymarket & Kalshi odds every 60s</span></div>
+      <div class="prem-feat"><span class="prem-feat-ic">📊</span><span><strong>P&amp;L tracking</strong> across all your saved setups</span></div>
+      <div class="prem-feat"><span class="prem-feat-ic">⚡</span><span><strong>Arbitrage email alerts</strong> when edge is detected</span></div>
+    </div>
+    <div class="prem-price">
+      <div>
+        <div class="price-big">$9<span style="font-size:18px;">.99</span></div>
+        <div class="price-per">/ month · cancel anytime · 7-day free trial</div>
+      </div>
+      <button class="btn btn-gold" id="upgradeBtn">Upgrade Now →</button>
+    </div>
+    <div class="prem-footer">No credit card required to start your free trial</div>
+    <div class="modal-actions" style="margin-top:6px;">
+      <button class="btn btn-ghost btn-sm" onclick="closePremModal()">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span id="toastIc">✓</span><span id="toastMsg">Done</span>
+</div>
+
+<!-- ═══════════════════════════════════ SCRIPTS ═══════════════════════════════════ -->
+<script src="js/math.js"></script>
+<script src="js/api.js"></script>
+<script src="js/saves.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
