@@ -43,7 +43,7 @@ function probToAm(p) {
 
 const PLATS      = ['dk', 'fd', 'mgm', 'caes', 'poly', 'kal'];
 const PLAT_NAMES = { dk:'DraftKings', fd:'FanDuel', mgm:'BetMGM', caes:'Caesars', poly:'Polymarket', kal:'Kalshi' };
-
+const PLAT_LABELS = { dk:'DraftKings', fd:'FanDuel', mgm:'BetMGM', caes:'Caesars', poly:'Polymarket', kal:'Kalshi' };
 /**
  * Returns the best (highest decimal / most generous) odds for a candidate
  * across all platforms, plus which platform offers them.

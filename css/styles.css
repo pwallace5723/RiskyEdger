@@ -134,9 +134,12 @@ header {
   display: flex; flex-direction: column; gap: 14px;
   position: sticky; top: 73px;
   max-height: calc(100vh - 90px); overflow-y: auto;
+  padding-right: 4px;
 }
-.left-col::-webkit-scrollbar { width: 4px; }
-.left-col::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 2px; }
+.left-col::-webkit-scrollbar { width: 6px; }
+.left-col::-webkit-scrollbar-track { background: var(--s2); border-radius: 3px; }
+.left-col::-webkit-scrollbar-thumb { background: var(--b3); border-radius: 3px; }
+.left-col::-webkit-scrollbar-thumb:hover { background: var(--acc); }
 
 /* ── RIGHT COLUMN ── */
 .right-col { display: flex; flex-direction: column; gap: 16px; }

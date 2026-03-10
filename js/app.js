@@ -73,6 +73,7 @@ function renderCandRow(c) {
       <div class="plat-grid">
         ${PLATS.map(p => `
           <div>
+            <div class="plat-name">${PLAT_LABELS[p]}</div>
             <input class="odds-inp${c.autoFilled[p] ? ' autofill' : ''}"
               id="oi-${c.id}-${p}"
               type="text"
